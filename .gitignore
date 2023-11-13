@@ -1,1 +1,4 @@
-vendor
+loading
+*.lock
+**/*.png
+*.png
