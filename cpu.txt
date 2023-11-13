@@ -1,0 +1,11 @@
+Three = [10,15,15,15,15,30,25,40,35,55,50,35]
+Baby = [10,15,15,15,15,30,25,40,40,35,60,35]
+Pc = [10,,15,15,20,15,30,,25,35,45,40,55,,25]
+
+$cpuGroups = [
+91-    'linux' => [
+92-        'ion', 'pirate', 'floresta_merged', 'skull', 'car_tank', 'car', 'brokencar',
+93-        'ilha', 'lab', 'floresta', 'floresta_sombra', 'car_clone'
+94-    ],
+95-];
+96:$cpuGroups['windows'] = array_merge($cpuGroups['linux'], ['desert']);

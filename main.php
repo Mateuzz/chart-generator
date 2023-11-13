@@ -23,26 +23,25 @@ $dataCPU = [];
 $dataRAM = [];
 
 $libraries = [
-    'Three' => 'Three.js',
-    'Babylon' => 'Babylon.js',
-    'babylon_fast' => 'Babylon.js (Optimized)',
-    'pc' => 'Playcanvas (Engine)',
-    'pc-editor' => 'Playcanvas (Editor)',
+    /* 'Three_fast' => 'Three.js', */
+    'Three_fastest' => 'Three.js',
+    /* 'Babylon_fast' => 'Babylon.js', */
+    'Babylon_fastest' => 'Babylon.js',
+    /* 'pc-editor_fast' => 'Playcanvas', */
+    'pc-editor' => 'Playcanvas',
 ];
 
 $palletes = [
-    'Three' => ['R' => 250, 'G' => 230, 'B' => 80,],
+    'Three_fastest' => ['R' => 250, 'G' => 210, 'B' => 60,],
+    'Three' => ['R' => 250, 'G' => 210, 'B' => 60,],
+    'Three_fast' => ['R' => 200, 'G' => 180, 'B' => 60,],
+    'Babylon_fastest' => ['R' => 240, 'G' => 050, 'B' => 040,],
     'Babylon' => ['R' => 240, 'G' => 050, 'B' => 040,],
-    'babylon_fast' => ['R' => 255, 'G' => 150, 'B' => 30,],
-    /* 'pc-editor' => ['R' => 250, 'G' => 250, 'B' => 250,], */
-    'pc-editor' => ['R' => 100, 'G' => 140, 'B' => 120,],
-    'pc' => ['R' => 69, 'G' => 71, 'B' => 114,],
-];
-
-$extraGroups = [
-    "desert4-e-sombra" => [
-        'desert4', 'desert_sombra'
-    ]
+    'Babylon_fast' => ['R' => 255, 'G' => 150, 'B' => 30,],
+    'Babylon_novertex' => ['R' => 255, 'G' => 150, 'B' => 30,],
+    'pc-editor_fast' => ['R' => 100, 'G' => 140, 'B' => 120,],
+    'pc-editor_fastest' => ['R' => 69, 'G' => 71, 'B' => 114,],
+    'pc-editor' => ['R' => 69, 'G' => 71, 'B' => 114,],
 ];
 
 $camps = [
@@ -55,47 +54,43 @@ $camps = [
 
 $query = "select ";
 foreach ($camps as $camp) {
-    $query .= "CAST(avg($camp[0]) as int) $camp[1],";
+    $query .= "avg($camp[0]) $camp[1],";
 }
-    $query .= "library, scene, browser, pc from rendering where scene not regexp 'fastest' group by browser, pc, scene, library";
+    $query .= "library, scene, browser, pc from rendering group by browser, pc, scene, library";
 
 $result = $db->query($query);
 
 $groups = [
     'windows' => [
-        'g1' => ['pirate_perto', 'pirate_longe', 'ion', 'floresta_merged', 'skull', 'ilha'],
-        'g2' => explode(' ', 'floresta_perto floresta_longe floresta_sombra lab_longe lab_perto'),
-        'g3' => explode(' ', 'desert car brokencar car_tank car_many car_clone'),
-        /* 'g2' => ['floresta_perto', 'floresta_longe', 'floresta_sombra', 'lab_longe', 'lab_perto', 'desert', 'desert_sombra'], */
+        'g1' => ['pirate_longe', 'pirate_perto', 'ion', 'skull', 'floresta_merged', 'ilha', 'lab_longe', 'lab_perto', 'car_tank'],
+        'g2' => ['car', 'floresta_longe', 'floresta_perto', 'floresta_sombra', 'brokencar', 'car_clone', 'desert']
     ],
     'linux' => [
-        'g1' => [
-            'pirate_perto', 'pirate_longe', 'ion', 'floresta_merged', 'skull', 'ilha',
-            'floresta_perto', 'floresta_longe', 'floresta_sombra', 'lab_longe', 'lab_perto'
-        ]
+        'g1' => ['pirate_longe', 'pirate_perto', 'ion', 'skull', 'floresta_merged', 'ilha', 'lab_longe', 'lab_perto', 'car_tank'],
+        'g2' => ['car', 'floresta_longe', 'floresta_perto', 'floresta_sombra', 'brokencar', 'car_clone']
     ]
 ];
 
 $cpuLabelMap = [
     'pirate' => 'Forte',
     'floresta' => 'Vale',
-    'floresta_merged' => 'Vale (batch)',
+    'floresta_merged' => 'Vale (merged)',
     'floresta_sombra' => 'Vale + Sombra',
     'lab' => 'Lab',
     'ion' => 'Propulsor',
     'ilha' => 'Ilha',
     'skull' => 'Crânio',
     'desert' => 'Deserto',
-    /* 'car' => 'Carro 1', */
-    /* 'brokencar' => 'Carro 2', */
-    /* 'car_tank' => 'Tanque', */
-    /* 'car_many' => 'Carros', */
-    /* 'car_clone' => 'Carros 2', */
+    'car' => 'Carro',
+    'brokencar' => 'Carro Quebrado',
+    'car_tank' => 'Tanque',
+    'car_clone' => '12 Carros',
 ];
 
 $cpuGroups = [
     'linux' => [
-        'pirate', 'ion', 'floresta_merged', 'skull', 'ilha', 'floresta', 'floresta_sombra', 'lab'
+        'ion', 'pirate', 'floresta_merged', 'skull', 'car_tank', 'car', 'brokencar',
+        'ilha', 'lab', 'floresta', 'floresta_sombra', 'car_clone'
     ],
 ];
 $cpuGroups['windows'] = array_merge($cpuGroups['linux'], ['desert']);
@@ -103,7 +98,7 @@ $cpuGroups['windows'] = array_merge($cpuGroups['linux'], ['desert']);
 while ($row = $result->fetch_assoc()) {
     extract($row);
 
-    $scene = str_replace("_fast", "", $scene);
+    $group = 'g0';
     if (isset($groups[$pc])) {
         foreach ($groups[$pc] as $groupName => $group) {
             if (array_search($scene, $group) !== false) {
@@ -112,7 +107,7 @@ while ($row = $result->fetch_assoc()) {
             }
         }
     }
-    $datav2[$browser][$pc][$groupName][$library][$scene] = $avg;
+    $datav2[$browser][$pc][$groupName][$library][$scene] = (int)$avg;
 }
 
 $dataNPM = [
@@ -159,7 +154,7 @@ function makeNPMCharts($data, $libraries)
 
     $libraries = [
         'Three' => 'Three.js',
-        'Babylon' => 'Babylon.js',
+        'BabYlon' => 'Babylon.js',
         'pc' => 'Playcanvas',
         'pc-editor' => 'Playcanvas',
     ];
@@ -196,30 +191,21 @@ function makeNPMCharts($data, $libraries)
 $dataCPU = [
     'linux' => [
         'CPU' => [
-            'Three' => [10,5,15,15,40,55,55,35],
-            'Babylon' => [10,10,15,20,50,50,60,45],
-            'pc' => [10,10,15,15,35,45,55,35],
-            'pc-editor' => [10,10,15,20,35,45,55,40],
+            'Three' => [10,15,15,15,15,30,25,40,35,55,50,35],
+            'Babylon' => [10,15,15,15,15,30,25,40,40,35,60,35],
+            'pc-editor' => [10,15,15,20,15,30,25,35,45,40,55,25]
         ],
-        'RAM' => [
-            'Three' => [5.6,5,5,6.6,14.7,8.4,17,16],
-            'Babylon' => [17,14,12,17,25,29,25,44],
-            'pc' => [10,12,7,12.5,15,17,19,12.8],
-            'pc-editor' => [9,8.5,14,11,14,17.6,22,14],
-        ]
     ],
     'windows' => [
         'CPU' => [
-            'Three' => [5,5,5,5,10,20,30,15,100],
-            'Babylon' => [5,5,5,5,15,20,40,20,100],
-            'pc' => [5,5,5,5,10,15,30,15,100],
-            'pc-editor' => [5,5,5,5,10,15,30,10,100],
+            'Three' => [5, 5, 5, 5, 5, 10, 15, 10, 15,20, 30, 55, 100],
+            'Babylon' => [5, 5, 5, 5, 5, 10, 10, 10, 15, 15, 25, 35,75],
+            'pc-editor' => [5,5, 5,5,5,5,5,10,10,15,30,35,100],
         ],
         'RAM' => [
-            'Three' => [6.3,8,8,11,15,28,17,27,40],
-            'Babylon' => [15,14,13,23,32,30,31,35,122],
-            'pc' => [10,12,11,18,31,21,26,33,101],
-            'pc-editor' => [8,9,15,14,30,36,36,30,124],
+            'Three' => [5, 5.8, 4.5, 6.3, 5.0, 10, 15, 15, 16,16.8,16.8, 29, 42],
+            'Babylon' => [13, 14.4,14,14.2, 12, 18, 19.6, 24, 28.7, 27,44,64, 121],
+            'pc-editor' => [8,9.5, 10.3,14.5,10.5,18,15.5,20,32.6,41,43.5,52,133],
         ]
     ]
 ];
@@ -228,6 +214,12 @@ function makeCpuCharts($dataCPU, $libraries)
 {
     global $barConfig, $legendConfig, $palletes;
     global $cpuGroups, $cpuLabelMap;
+
+    $libraries = [
+        'Three' => 'Three.js',
+        'Babylon' => 'Babylon.js',
+        'pc-editor' => 'Playcanvas',
+    ];
 
     $cpuAxisNames = [
         'CPU' => 'CPU (%)',
@@ -257,7 +249,8 @@ function makeCpuCharts($dataCPU, $libraries)
             }
 
             foreach ($palletes as $lib => $colors) {
-                $data->setPalette($libraries[$lib], $colors);
+                if (isset($libraries[$lib]))
+                    $data->setPalette($libraries[$lib], $colors);
             }
 
             $data->addPoints(array_map(fn($item) => $cpuLabelMap[$item], $cpuGroups[$pcName]), 'scenes');
@@ -278,14 +271,17 @@ $query = "select avg(ms) ms, library, scene, pc from model_loading group by pc, 
 $result = $db->query($query);
 
 while ($row = $result->fetch_assoc()) {
+    $library = preg_replace("/_fast.*$/", "", $library);
+    $scene = preg_replace("/_fast.*$/", "", $scene);
     extract($row);
     $dataModelLoading[$pc][$library][$scene] = (int)$ms;
 }
 
-$query = "select avg(ms) ms, library, scene, pc from startup group by pc, library";
+$query = "select avg(ms) ms, library, scene, pc from startup group by pc, scene, library";
 $result = $db->query($query);
 
 while ($row = $result->fetch_assoc()) {
+    $library = preg_replace("/_fast.*$/", "", $library);
     extract($row);
     $dataModelLoading[$pc][$library]['startup'] = (int)$ms;
 }
@@ -296,18 +292,28 @@ function makeLoadingChart($dataModelLoading, $libraries)
         'startup' => 'Inicialização',
         'pirate' => 'Forte Pirata',
         'ion' => 'Propulsor',
-        'floresta_merged' => 'Vale (batch)',
+        'floresta_merged' => 'Vale (merged)',
         'skull' => 'Crânio',
         'ilha' => 'Ilha',
         'floresta' => 'Vale',
         'lab' => 'Lab',
+        'car' => "Carro",
+        'brokencar' => "Carro Quebrado",
+        'car_clone' => "12 Carros",
+        'car_tank' => "Tanque",
         'desert' => 'Deserto',
+    ];
+
+    $libraries = [
+        'Three' => "Three.js",
+        'Babylon' => "Babylon.js",
+        'pc-editor' => "Playcanvas",
     ];
 
     global $barConfig, $legendConfig, $palletes;
 
     $LoadingbarConfig = array_merge($barConfig, [
-        "DisplayValues" => true
+            "DisplayValues" => true
     ]);
 
     foreach ($dataModelLoading as $pcName => $pc) {
@@ -340,7 +346,8 @@ function makeLoadingChart($dataModelLoading, $libraries)
                 $labels[] = $labelName;
 
         foreach ($palletes as $lib => $colors)
-            $data->setPalette($libraries[$lib], $colors);
+            if (isset($libraries[$lib]))
+                $data->setPalette($libraries[$lib], $colors);
 
         $data->addPoints($labels, 'scenes');
         $data->setAbscissa('scenes');
@@ -348,10 +355,6 @@ function makeLoadingChart($dataModelLoading, $libraries)
 
         cursorSetSize($cursor, $width, $height);
         imageStartDraw($image, $cursor, $data, $settings);
-        $settings = [
-            'Pos' => SCALE_POS_TOPBOTTOM,
-            'Factors' => [60]
-        ];
         $image->drawBarChart($LoadingbarConfig);
 
         $image->drawLegend(OUTER_PADDING, IMAGE_HEIGHT - 30, $legendConfig);
@@ -454,7 +457,7 @@ function makeAvgChart($filename, $browser, $libraries)
     global $legendConfig, $barConfig, $palletes;
 
     $localBarConfig = array_merge($barConfig, [
-        'DisplayValues' => true,
+            'DisplayValues' => true,
     ]);
 
     global $groups;
@@ -464,7 +467,7 @@ function makeAvgChart($filename, $browser, $libraries)
         'pirate_longe' => 'Forte (longe)',
         'floresta_perto' => 'Vale (perto)',
         'floresta_longe' => 'Vale (longe)',
-        'floresta_merged' => 'Vale (batch)',
+        'floresta_merged' => 'Vale (merged)',
         'floresta_sombra' => 'Vale + sombra',
         'ion' => 'Propulsor',
         'lab_perto' => 'Lab (interior)',
@@ -472,12 +475,10 @@ function makeAvgChart($filename, $browser, $libraries)
         'ilha' => 'Ilha',
         'skull' => 'Crânio',
         'desert' => 'Deserto',
-        'desert_sombra' => 'Deserto + sombra',
-        'car' => 'Carro 1',
-        'brokencar' => 'Carro 2',
+        'car' => 'Carro',
+        'brokencar' => 'Carro Quebrado',
         'car_tank' => 'Tanque',
-        'car_many' => 'Carros',
-        'car_clone' => 'Carros 2',
+        'car_clone' => '12 Carros',
     ];
 
     $axisNames = [
@@ -501,7 +502,8 @@ function makeAvgChart($filename, $browser, $libraries)
                 $data->addPoints($points, $libFullName);
             }
             foreach ($palletes as $lib => $colors) {
-                $data->setPalette($libraries[$lib], $colors);
+                if (isset($libraries[$lib]))
+                    $data->setPalette($libraries[$lib], $colors);
             }
 
             $data->addPoints(array_map(fn ($item) => $labelMap[$item], $groups[$pcName][$groupName]), 'fps');
@@ -513,12 +515,12 @@ function makeAvgChart($filename, $browser, $libraries)
             $image->drawBarChart($localBarConfig);
 
             $image->drawLegend(OUTER_PADDING, IMAGE_HEIGHT - 30, $legendConfig);
-            $image->autoOutput("$filename-$pcName-$groupName.png");
+            $image->autoOutput("$filename-frustum-$pcName-$groupName.png");
         }
     }
 }
 
 /* makeNPMCharts($dataNPM, $libraries); */
 makeBarCharts($datav2, $libraries);
-/* makeLoadingChart($dataModelLoading, $libraries); */
-/* makeCpuCharts($dataCPU, $libraries); */
+makeLoadingChart($dataModelLoading, $libraries);
+makeCpuCharts($dataCPU, $libraries);
