@@ -10,8 +10,9 @@ const IMAGE_WIDTH = 1700;
 const IMAGE_HEIGHT = 600;
 const OUTER_PADDING = 100;
 
-$legendConfig = ['Mode' => LEGEND_HORIZONTAL, "R" => 255, "G" => 255, "B" => 255, 'BoxWidth' => 16, 'BoxHeight' => 16, "Alpha" => 255, "FontSize" => 18, "Family" => LEGEND_FAMILY_BOX];
-$barConfig = ["Rounded" => true, "Surrounding" => 30, "DisplayValues" => false, "DisplayPos" => LABEL_POS_OUTSIDE, "Gradient" => true];
+$legendConfig = ['Mode' => LEGEND_HORIZONTAL, "R" => 255, "G" => 255, "B" => 255, 'BoxWidth' => 16, 'BoxHeight' => 16, "Alpha" => 255, "FontSize" => 20, "Family" => LEGEND_FAMILY_BOX, 'Margin' => 20];
+$barConfig = ["Rounded" => true, "Surrounding" => 30, "DisplayValues" => false, "DisplayPos" => LABEL_POS_OUTSIDE, "Gradient" => true,];
+
 
 $db = getDatabase();
 
@@ -56,7 +57,7 @@ $query = "select ";
 foreach ($camps as $camp) {
     $query .= "avg($camp[0]) $camp[1],";
 }
-    $query .= "library, scene, browser, pc from rendering group by browser, pc, scene, library";
+$query .= "library, scene, browser, pc from rendering group by browser, pc, scene, library";
 
 $result = $db->query($query);
 
@@ -123,8 +124,7 @@ $dataNPM = [
     ],
 ];
 
-function makeNPMCharts($data, $libraries)
-{
+function makeNPMCharts($data, $libraries) {
     $npmTestLabels = [
         'NPM' => ['Principal', 'Total'],
         'Código' => ['Bundled', 'Minificado', 'Minificado + GZIP'],
@@ -142,19 +142,21 @@ function makeNPMCharts($data, $libraries)
     ]);
 
     $image = getImage(IMAGE_WIDTH, IMAGE_HEIGHT);
-    $outerPadding = OUTER_PADDING - 20;
-    $innerPadding = OUTER_PADDING;
+    $outerPadding = OUTER_PADDING + 10;
+    $innerPadding = OUTER_PADDING + 10;
     $totalWidth = (IMAGE_WIDTH - ($outerPadding * 2 + $innerPadding));
     $width = 0.6 * $totalWidth;
     $height = IMAGE_HEIGHT - 60 - 80;
     $cursor = getCursor();
-    $settings = [];
+    $settings = [
+        'MinDivHeight' => 40,
+    ];
 
     cursorMove($cursor, $outerPadding, 60);
 
     $libraries = [
         'Three' => 'Three.js',
-        'BabYlon' => 'Babylon.js',
+        'Babylon' => 'Babylon.js',
         'pc' => 'Playcanvas',
         'pc-editor' => 'Playcanvas',
     ];
@@ -167,7 +169,8 @@ function makeNPMCharts($data, $libraries)
                 $data->addPoints($infoData[$lib], $libName);
         }
         foreach ($palletes as $lib => $colors)
-            $data->setPalette($libraries[$lib], $colors);
+            if (isset($libraries[$lib]))
+                $data->setPalette($libraries[$lib], $colors);
 
         $data->addPoints($npmTestLabels[$infoName], 'types');
         $data->setAbscissa('types');
@@ -175,10 +178,7 @@ function makeNPMCharts($data, $libraries)
 
         cursorSetSize($cursor, $width, $height);
         imageStartDraw($image, $cursor, $data, $settings);
-        $settings = [
-            'Pos' => SCALE_POS_TOPBOTTOM,
-            'Factors' => [40]
-        ];
+        $settings['Pos'] = SCALE_POS_TOPBOTTOM;
         $image->drawBarChart($npmBarConfig);
         cursorMove($cursor, $width + $innerPadding);
         $width = 0.4 * $totalWidth;
@@ -191,27 +191,26 @@ function makeNPMCharts($data, $libraries)
 $dataCPU = [
     'linux' => [
         'CPU' => [
-            'Three' => [10,15,15,15,15,30,25,40,35,55,50,35],
-            'Babylon' => [10,15,15,15,15,30,25,40,40,35,60,35],
-            'pc-editor' => [10,15,15,20,15,30,25,35,45,40,55,25]
+            'Three' => [10, 15, 15, 15, 15, 30, 25, 40, 35, 55, 50, 35],
+            'Babylon' => [10, 15, 15, 15, 15, 30, 25, 40, 40, 35, 60, 35],
+            'pc-editor' => [10, 15, 15, 20, 15, 30, 25, 35, 45, 40, 55, 25]
         ],
     ],
     'windows' => [
         'CPU' => [
-            'Three' => [5, 5, 5, 5, 5, 10, 15, 10, 15,20, 30, 55, 100],
-            'Babylon' => [5, 5, 5, 5, 5, 10, 10, 10, 15, 15, 25, 35,75],
-            'pc-editor' => [5,5, 5,5,5,5,5,10,10,15,30,35,100],
+            'Three' => [5, 5, 5, 5, 5, 10, 15, 10, 15, 20, 30, 55, 100],
+            'Babylon' => [5, 5, 5, 5, 5, 10, 10, 10, 15, 15, 25, 35, 75],
+            'pc-editor' => [5, 5, 5, 5, 5, 5, 5, 10, 10, 15, 30, 35, 100],
         ],
         'RAM' => [
-            'Three' => [5, 5.8, 4.5, 6.3, 5.0, 10, 15, 15, 16,16.8,16.8, 29, 42],
-            'Babylon' => [13, 14.4,14,14.2, 12, 18, 19.6, 24, 28.7, 27,44,64, 121],
-            'pc-editor' => [8,9.5, 10.3,14.5,10.5,18,15.5,20,32.6,41,43.5,52,133],
+            'Three' => [5, 5.8, 4.5, 6.3, 5.0, 10, 15, 15, 16, 16.8, 16.8, 29, 42],
+            'Babylon' => [13, 14.4, 14, 14.2, 12, 18, 19.6, 24, 28.7, 27, 44, 64, 121],
+            'pc-editor' => [8, 9.5, 10.3, 14.5, 10.5, 18, 15.5, 20, 32.6, 41, 43.5, 52, 133],
         ]
     ]
 ];
 
-function makeCpuCharts($dataCPU, $libraries)
-{
+function makeCpuCharts($dataCPU, $libraries) {
     global $barConfig, $legendConfig, $palletes;
     global $cpuGroups, $cpuLabelMap;
 
@@ -231,7 +230,7 @@ function makeCpuCharts($dataCPU, $libraries)
     $outerPadding = OUTER_PADDING - 20;
     $width = IMAGE_WIDTH - $outerPadding * 2;
     $height = IMAGE_HEIGHT - 60 - 80;
-    $settings = [ 'MinDivHeight' => 20, ];
+    $settings = ['MinDivHeight' => 30,];
 
     foreach ($dataCPU as $pcName => $pc) {
         foreach ($pc as $infoName => $infoData) {
@@ -253,7 +252,7 @@ function makeCpuCharts($dataCPU, $libraries)
                     $data->setPalette($libraries[$lib], $colors);
             }
 
-            $data->addPoints(array_map(fn($item) => $cpuLabelMap[$item], $cpuGroups[$pcName]), 'scenes');
+            $data->addPoints(array_map(fn ($item) => $cpuLabelMap[$item], $cpuGroups[$pcName]), 'scenes');
             $data->setAbscissa('scenes');
             $data->setAxisName(0, $cpuAxisNames[$infoName]);
 
@@ -286,8 +285,7 @@ while ($row = $result->fetch_assoc()) {
     $dataModelLoading[$pc][$library]['startup'] = (int)$ms;
 }
 
-function makeLoadingChart($dataModelLoading, $libraries)
-{
+function makeLoadingChart($dataModelLoading, $libraries) {
     $labelMap = [
         'startup' => 'Inicialização',
         'pirate' => 'Forte Pirata',
@@ -313,7 +311,7 @@ function makeLoadingChart($dataModelLoading, $libraries)
     global $barConfig, $legendConfig, $palletes;
 
     $LoadingbarConfig = array_merge($barConfig, [
-            "DisplayValues" => true
+        "DisplayValues" => true
     ]);
 
     foreach ($dataModelLoading as $pcName => $pc) {
@@ -322,7 +320,9 @@ function makeLoadingChart($dataModelLoading, $libraries)
         $width = (IMAGE_WIDTH - ($outerPadding * 2));
         $height = IMAGE_HEIGHT - 60 - 80;
         $cursor = getCursor();
-        $settings = [];
+        $settings = [
+            'MinDivHeight' => 40,
+        ];
 
         cursorMove($cursor, $outerPadding, 50);
         $data = new Data();
@@ -335,6 +335,8 @@ function makeLoadingChart($dataModelLoading, $libraries)
                 if (isset($pc[$lib][$scene])) {
                     $points[] = $pc[$lib][$scene];
                     $usedScenes[$scene] = true;
+                } else {
+                    $points[] = VOID;
                 }
             }
             $data->addPoints($points, $libName);
@@ -362,15 +364,13 @@ function makeLoadingChart($dataModelLoading, $libraries)
     }
 }
 
-function makeBarCharts($dataAvg, $libraries)
-{
+function makeBarCharts($dataAvg, $libraries) {
     foreach ($dataAvg as $browserName => $browser) {
         makeAvgChart("./avgs/$browserName", $browser, $libraries);
     }
 }
 
-function getImage($width, $height)
-{
+function getImage($width, $height) {
     $image = new Image($width, $height);
     /* $image->drawRectangle(0, 0, $width - 0, $height - 0, makeArrayColor(0, 0, 0)); */
 
@@ -383,8 +383,7 @@ function getImage($width, $height)
     return $image;
 }
 
-function getData(array $pointData, ?string $abcissaName)
-{
+function getData(array $pointData, ?string $abcissaName) {
     $data = new Data();
     foreach ($pointData as $points) {
         $data->addPoints($points['values'], $points['name']);
@@ -394,28 +393,24 @@ function getData(array $pointData, ?string $abcissaName)
     return $data;
 }
 
-function getCursor()
-{
+function getCursor() {
     return [
         'xStart' => 0,
         'yStart' => 0,
     ];
 }
 
-function cursorSetSize(&$layout, $width, $height)
-{
+function cursorSetSize(&$layout, $width, $height) {
     $layout['xEnd'] = $layout['xStart'] + $width;
     $layout['yEnd'] = $layout['yStart'] + $height;
 }
 
-function cursorMove(&$layout, $x = 0, $y = 0)
-{
+function cursorMove(&$layout, $x = 0, $y = 0) {
     $layout['xStart'] += $x;
     $layout['yStart'] += $y;
 }
 
-function imageStartDraw(Image $image, &$cursor, $data, $settings = [])
-{
+function imageStartDraw(Image $image, &$cursor, $data, $settings = []) {
     $image->setDataSet($data);
     $drawSettings = [
         "CycleBackground" => true,
@@ -439,25 +434,23 @@ function imageStartDraw(Image $image, &$cursor, $data, $settings = [])
 
     extract($cursor);
 
-    $image->setFontProperties(["FontName" => "verdana.ttf", "FontSize" => 12]);
+    $image->setFontProperties(["FontName" => "verdana.ttf", "FontSize" => 14]);
     $image->setGraphArea($xStart, $yStart, $xEnd, $yEnd);
     $image->drawScale($drawSettings);
     $image->setShadow(true, ["X" => 1, "Y" => 1, "R" => 0, "G" => 0, "B" => 0, "Alpha" => 10]);
 }
 
 
-function makeArrayColor($R, $G, $B)
-{
+function makeArrayColor($R, $G, $B) {
     return compact(["R", "G", "B"]);
 }
 
 
-function makeAvgChart($filename, $browser, $libraries)
-{
+function makeAvgChart($filename, $browser, $libraries) {
     global $legendConfig, $barConfig, $palletes;
 
     $localBarConfig = array_merge($barConfig, [
-            'DisplayValues' => true,
+        'DisplayValues' => true,
     ]);
 
     global $groups;
@@ -490,6 +483,10 @@ function makeAvgChart($filename, $browser, $libraries)
     $width = IMAGE_WIDTH - $outerPadding * 2;
     $height = IMAGE_HEIGHT - 60 - 80;
 
+    $settings = [
+        'MinDivHeight' => 30,
+    ];
+
     foreach ($browser as $pcName => $pc) {
         foreach ($pc as $groupName => $group) {
             $cursor = getCursor();
@@ -511,16 +508,16 @@ function makeAvgChart($filename, $browser, $libraries)
             $data->setAxisName(0, $axisNames[$pcName]);
 
             cursorSetSize($cursor, $width, $height);
-            imageStartDraw($image, $cursor, $data);
+            imageStartDraw($image, $cursor, $data, $settings);
             $image->drawBarChart($localBarConfig);
 
             $image->drawLegend(OUTER_PADDING, IMAGE_HEIGHT - 30, $legendConfig);
-            $image->autoOutput("$filename-frustum-$pcName-$groupName.png");
+            $image->autoOutput("$filename-$pcName-$groupName.png");
         }
     }
 }
 
 /* makeNPMCharts($dataNPM, $libraries); */
-makeBarCharts($datav2, $libraries);
+/* makeBarCharts($datav2, $libraries); */
 makeLoadingChart($dataModelLoading, $libraries);
-makeCpuCharts($dataCPU, $libraries);
+/* makeCpuCharts($dataCPU, $libraries); */
