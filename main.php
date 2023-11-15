@@ -313,7 +313,7 @@ function makeLoadingChart($dataModelLoading, $libraries)
     global $barConfig, $legendConfig, $palletes;
 
     $LoadingbarConfig = array_merge($barConfig, [
-            "DisplayValues" => true
+        "DisplayValues" => true
     ]);
 
     foreach ($dataModelLoading as $pcName => $pc) {
@@ -335,6 +335,8 @@ function makeLoadingChart($dataModelLoading, $libraries)
                 if (isset($pc[$lib][$scene])) {
                     $points[] = $pc[$lib][$scene];
                     $usedScenes[$scene] = true;
+                } else {
+                    $points[] = VOID;
                 }
             }
             $data->addPoints($points, $libName);
@@ -515,7 +517,7 @@ function makeAvgChart($filename, $browser, $libraries)
             $image->drawBarChart($localBarConfig);
 
             $image->drawLegend(OUTER_PADDING, IMAGE_HEIGHT - 30, $legendConfig);
-            $image->autoOutput("$filename-frustum-$pcName-$groupName.png");
+            $image->autoOutput("$filename-$pcName-$groupName.png");
         }
     }
 }
